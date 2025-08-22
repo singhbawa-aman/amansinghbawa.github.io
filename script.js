@@ -380,3 +380,85 @@ scrollToTop.addEventListener('mouseleave', () => {
     scrollToTop.style.transform = 'scale(1) translateY(0)';
     scrollToTop.style.boxShadow = '0 4px 15px rgba(102, 126, 234, 0.3)';
 });
+
+// Resume download functionality
+function downloadResume() {
+    // Create a temporary download link
+    const link = document.createElement('a');
+    link.href = './Aman_Preet_Singh_Resume.pdf';
+    link.download = 'Aman_Preet_Singh_Resume.pdf';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // Track download event (for analytics)
+    if (typeof gtag !== 'undefined') {
+        gtag('event', 'resume_download', {
+            'event_category': 'engagement',
+            'event_label': 'PDF Resume Download'
+        });
+    }
+    
+    // Show success message
+    showMessage('📄 Resume PDF download started!', 'success');
+}
+
+// Enhanced PDF download handling
+function forceDownload(url, filename) {
+    try {
+        // Create a temporary link element
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename || 'download';
+        link.style.display = 'none';
+        
+        // Append to body, click, and remove
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        console.log('Download triggered for:', url);
+        return true;
+    } catch (error) {
+        console.error('Download failed:', error);
+        // Fallback: open in new window
+        window.open(url, '_blank');
+        return false;
+    }
+}
+
+// Add click tracking for resume buttons
+document.addEventListener('DOMContentLoaded', () => {
+    const resumeButtons = document.querySelectorAll('a[href*=".pdf"]');
+    resumeButtons.forEach(button => {
+        button.addEventListener('click', (e) => {
+            e.preventDefault(); // Prevent default to handle download ourselves
+            
+            const pdfUrl = button.href;
+            const filename = button.download || 'Aman_Preet_Singh_Resume.pdf';
+            
+            console.log('Resume download clicked:', pdfUrl);
+            
+            // Try to force download
+            const downloadSuccess = forceDownload(pdfUrl, filename);
+            
+            // Track PDF downloads
+            if (typeof gtag !== 'undefined') {
+                gtag('event', 'file_download', {
+                    'event_category': 'engagement',
+                    'event_label': 'Resume PDF',
+                    'file_name': filename
+                });
+            }
+            
+            // Show appropriate user feedback
+            setTimeout(() => {
+                if (downloadSuccess) {
+                    showMessage('📄 Resume PDF download started! Check your Downloads folder.', 'success');
+                } else {
+                    showMessage('📄 Resume opened in new tab. Right-click and Save As to download.', 'success');
+                }
+            }, 300);
+        });
+    });
+});
